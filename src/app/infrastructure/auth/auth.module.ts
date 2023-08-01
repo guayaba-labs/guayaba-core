@@ -1,10 +1,8 @@
-import { DynamicModule, Global, Module, Provider, ValueProvider } from "@nestjs/common"
-import { AUTH_OPTION } from "./consts/auth-option.const"
-import { IAuthConfig } from "./interfaces/auth-option.interface"
-import { AuthAsyncOptions } from "./interfaces/auth-async-option.interface"
-import { AuthOptionsFactory } from "./factories/auth-option.factory"
+import { DynamicModule, Global, Module, Provider } from "@nestjs/common"
+import { AUTH_OPTIONS } from "./consts/auth-option.const"
+import { AuthModuleAsyncOptions, IAuthConfig } from "./interfaces/auth-option.interface"
 import { AuthTypeORMService } from "./service/auth-typeorm.service"
-import { AUTH_VALIDATION } from "./consts/auth-validation.const"
+import { AUTH_SERVICE } from "./consts/auth-validation.const"
 import { AuthUseCase } from "./use-case/auth.use-case"
 import { AuthController } from "./presentation/auth.controller"
 import { LocalStrategy } from "./strategies/local.strategy"
@@ -12,83 +10,53 @@ import { JwtStrategy } from "./strategies/jwt-auth.strategy"
 import { JwtAuthGuard } from "./guards/jwt-auth.guard"
 import { PassportModule } from "@nestjs/passport"
 import { JwtModule } from "@nestjs/jwt"
+import { AuthOptionsFactory } from "./interfaces/auth-module.interface"
+import { JWT_SECRET } from "./consts/jwt-constant.const"
 
 @Global()
 @Module({})
 export class AuthModule {
 
-  public static forRoot(options: IAuthConfig): DynamicModule {
+  public static forRoot(options: IAuthConfig, config: { imports: any[] }): DynamicModule {
 
-    const authOptionProvider: ValueProvider<IAuthConfig> = {
-      provide: AUTH_OPTION,
-      useValue: options
-    }
+    const AuthOptionProvider = {
+      provide: AUTH_OPTIONS,
+      useValue: options,
+    };
 
-    return {
-      module: AuthModule,
-      controllers: [
-        //
-      ],
-      providers: [
-        authOptionProvider
-      ],
-      imports: [],
-      exports: []
-    }
-  }
-
-  public static forRootAsync(options: AuthAsyncOptions): DynamicModule {
-    const providers: Provider[] = this.createAsyncProviders(options)
-
-    const authProviderSelection: Provider = {
-      provide: AUTH_VALIDATION,
-      useFactory: (authOption: IAuthConfig) => {
-
-        switch (authOption.provide) {
-          case "local":
-            return AuthTypeORMService
-        }
-
-        return null
+    const serviceProviders: { local: Provider, firebase: Provider } =  {
+      local: {
+        provide: AUTH_SERVICE,
+        useClass: AuthTypeORMService
       },
-      inject: [
-        AUTH_OPTION
-      ]
+      firebase: {
+        provide: AUTH_SERVICE,
+        useClass: AuthTypeORMService
+      }
     }
+
+    const ServiceAuthProvider = serviceProviders[options.provide]
 
     return {
       module: AuthModule,
-      providers: [
-        ...providers,
-        ...(options.extraProviders || []),
-        authProviderSelection,
-        AuthUseCase,
-        LocalStrategy,
-        JwtStrategy,
-        JwtAuthGuard
-      ],
       imports: [
         PassportModule.register({
           defaultStrategy: "jwt"
         }),
-        JwtModule.registerAsync({
-          inject: [
-
-          ],
-          useFactory: (authOption: IAuthConfig) => {
-
-            return {
-              secret: authOption.jwtOption.jwtSecret,
-              signOptions: {
-                expiresIn: authOption.jwtOption.expireIn
-              }
-            }
-          }
+        JwtModule.register({
+          secret: options.jwtOption.jwtSecret ?? JWT_SECRET,
+          signOptions: { expiresIn: '1day' },
         }),
-        ...options.imports
+        ...config.imports
       ],
-      exports: [
-        AuthUseCase
+      exports: [AuthOptionProvider, ServiceAuthProvider],
+      providers: [
+        AuthOptionProvider,
+        ServiceAuthProvider,
+        AuthUseCase,
+        LocalStrategy,
+        JwtStrategy,
+        JwtAuthGuard,
       ],
       controllers: [
         AuthController
@@ -96,41 +64,79 @@ export class AuthModule {
     }
   }
 
-  private static createAsyncProviders(options: AuthAsyncOptions): Provider[] {
+  public static forRootAsync(optionAsync: AuthModuleAsyncOptions): DynamicModule {
 
-    const authOptionProvider = this.createAsyncOptionsProvider(options)
+    const ServiceAuthProvider = {
+      provide: AUTH_SERVICE,
+      useFactory: (options) => {
 
-    const providers: Provider[] = [authOptionProvider]
+        const factoryImpl = {
+          "local": AuthTypeORMService
+        }
 
-    if (options.useClass) {
-      providers.push({
-        provide: options.useClass,
-        useClass: options.useClass,
-      })
-    }
-
-    return providers
-  }
-
-  private static createAsyncOptionsProvider(
-    options: AuthAsyncOptions,
-  ): Provider {
-    if (options.useFactory) {
-      return {
-        name: AUTH_OPTION,
-        provide: AUTH_OPTION,
-        useFactory: options.useFactory,
-        inject: options.inject || [],
-      }
+        return factoryImpl[options.provide]
+      },
+      inject: [
+        AUTH_OPTIONS
+      ]
     }
 
     return {
-      name: AUTH_OPTION,
-      provide: AUTH_OPTION,
-      useFactory: async (optionsFactory: AuthOptionsFactory) => {
-        return optionsFactory.createAuthOptions()
-      },
-      inject: [options.useExisting! || options.useClass!],
+      module: AuthModule,
+      imports: [
+        PassportModule.register({
+          defaultStrategy: "jwt"
+        }),
+        JwtModule.register({
+          secret: JWT_SECRET,
+          signOptions: { expiresIn: '1day' },
+        }),
+        ...optionAsync.imports
+      ],
+      controllers: [AuthController],
+      providers: [
+        ...this.createAsyncProviders(optionAsync),
+        ServiceAuthProvider,
+        AuthTypeORMService,
+        AuthUseCase,
+        LocalStrategy,
+        JwtStrategy,
+        JwtAuthGuard,
+        ...(optionAsync.extraProviders || [])
+      ],
+      exports: [ServiceAuthProvider, AuthUseCase, AuthTypeORMService, JwtAuthGuard],
     }
   }
+
+  private static createAsyncProviders(optionAsync: AuthModuleAsyncOptions): Provider[] {
+    if (optionAsync.useExisting || optionAsync.useFactory)
+      return [this.createAsyncOptionsProvider(optionAsync)]
+
+    return [
+      this.createAsyncOptionsProvider(optionAsync),
+      {
+        provide: optionAsync.useClass,
+        useClass: optionAsync.useClass
+      }
+    ]
+  }
+
+  private static createAsyncOptionsProvider(optionAsync: AuthModuleAsyncOptions): Provider {
+
+    if (optionAsync.useFactory)
+      return {
+        provide: AUTH_OPTIONS,
+        useFactory: optionAsync.useFactory,
+        inject: optionAsync.inject || []
+      }
+
+    return {
+      provide: AUTH_OPTIONS,
+      useFactory: async (optionFactory: AuthOptionsFactory) => optionFactory.createAuthOptionFactory(),
+      inject: [
+        optionAsync.useExisting || optionAsync.useClass
+      ]
+    }
+  }
+
 }

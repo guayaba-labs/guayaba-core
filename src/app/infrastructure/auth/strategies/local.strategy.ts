@@ -1,14 +1,14 @@
 
-import { Inject, Injectable, UnauthorizedException } from "@nestjs/common"
+import { Inject, Injectable } from "@nestjs/common"
 import { PassportStrategy } from "@nestjs/passport"
 import { Strategy } from "passport-local"
 import { IValidateService } from "../interfaces/validate-provide.interface"
-import { AUTH_VALIDATION } from "../consts/auth-validation.const"
+import { AUTH_SERVICE } from "../consts/auth-validation.const"
 
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {
   constructor(
-    @Inject(AUTH_VALIDATION)
+    @Inject(AUTH_SERVICE)
     private readonly authValidateService: IValidateService
   ) {
     super()

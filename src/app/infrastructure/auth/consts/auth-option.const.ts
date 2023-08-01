@@ -1,1 +1,1 @@
-export const AUTH_OPTION: string = "AUTH_OPTION"
+export const AUTH_OPTIONS: string = "AUTH_OPTION_TOKEN"

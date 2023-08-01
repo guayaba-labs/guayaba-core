@@ -1,1 +1,1 @@
-export const AUTH_VALIDATION: string = "AUTH_VALIDATION"
+export const AUTH_SERVICE: string = "AUTH_SERVICE_TOKEN"

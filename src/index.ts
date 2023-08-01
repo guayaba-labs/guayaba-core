@@ -26,7 +26,6 @@ export * from "./app/shared/config-file/guayaba-file.interface"
 
 export * from "./app/infrastructure/auth/consts/auth-option.const"
 export * from "./app/infrastructure/auth/interfaces/auth-option.interface"
-export * from "./app/infrastructure/auth/interfaces/auth-async-option.interface"
+export * from "./app/infrastructure/auth/interfaces/auth-module.interface"
 export * from "./app/infrastructure/auth/interfaces/validate-provide.interface"
-export * from "./app/infrastructure/auth/factories/auth-option.factory"
 export * from "./app/infrastructure/auth/auth.module"
