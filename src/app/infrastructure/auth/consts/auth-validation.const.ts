@@ -1,0 +1,1 @@
+export const AUTH_VALIDATION: string = "AUTH_VALIDATION"
