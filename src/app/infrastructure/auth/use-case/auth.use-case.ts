@@ -6,6 +6,7 @@ import { JwtService } from "@nestjs/jwt"
 import { LoginResponse } from "../domain/response/login.response"
 import { IAuthConfig } from "../interfaces/auth-option.interface"
 import { AUTH_OPTIONS } from "../consts/auth-option.const"
+import { JWTUserPayload } from "../interfaces/jwt-user.interface"
 
 @Injectable()
 export class AuthUseCase {
@@ -24,9 +25,11 @@ export class AuthUseCase {
 
     const resultLogin = await this.authValidation.validate(loginDto.username, loginDto.password)
 
-    const payloadLoginCase = {
-      [this.authOption.authUserOption.userFieldId]: resultLogin[this.authOption.authUserOption.userFieldId],
-      [this.authOption.authUserOption.userFieldUsername]: resultLogin[this.authOption.authUserOption.userFieldUsername],
+    const authUserField = this.authOption.authUserOption
+
+    const payloadLoginCase: JWTUserPayload = {
+      [authUserField.userFieldId]: resultLogin[authUserField.userFieldId],
+      [authUserField.userFieldUsername]: resultLogin[authUserField.userFieldUsername],
     }
 
     const token = await this.jwtService.sign(payloadLoginCase)

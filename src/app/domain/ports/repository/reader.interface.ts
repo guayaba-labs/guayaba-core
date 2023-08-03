@@ -1,5 +1,5 @@
 import { PaginationQuery } from "../../dto/pagination-query.dto"
-import { IListPage } from "../../responses/list-page.response"
+import { ListPageResponse } from "../../responses/list-page.response"
 
 /**
  * Interface Reader Data in Repository.
@@ -13,7 +13,7 @@ export interface IReaderRepository<I> {
    *
    * @param queryParams
    */
-  listPage(queryParams: PaginationQuery): Promise<IListPage<I | null | unknown>>
+  listPage(queryParams: PaginationQuery): Promise<ListPageResponse>
 
   /**
    * Find Element By Id Entity.

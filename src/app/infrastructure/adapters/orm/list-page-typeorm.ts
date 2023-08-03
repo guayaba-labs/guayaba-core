@@ -1,9 +1,9 @@
 import { SelectQueryBuilder } from "typeorm"
+import { camelCase } from "change-case"
 import { plainToInstance } from "class-transformer"
 
 import { BaseInputDto } from "../../../domain/dto/base.dto"
-import { IListPage } from "../../../domain/responses/list-page.response"
-import { camelCase } from "change-case"
+import { IListPage } from "../../../domain/responses/list-page.interface"
 
 export interface BuildListPageOptions {
   alias?: string
@@ -28,7 +28,7 @@ export async function BuildListPage<T, D>(entityMapper: typeof BaseInputDto, que
     Promise<T[]>,
     Promise<{ totalRecords: number }>
   ] = [
-      queryBase.limit(limit).offset((page - 1) * limit).orderBy("c.created_at", "DESC").getRawMany(),
+      queryBase.limit(limit).offset((page - 1) * limit).orderBy(`${alias}.created_at`, "DESC").getRawMany(),
       countQuery.select("count(*)", "totalRecords").getRawOne<{ totalRecords: number }>()
     ]
 

@@ -12,6 +12,8 @@ import { PassportModule } from "@nestjs/passport"
 import { JwtModule } from "@nestjs/jwt"
 import { AuthOptionsFactory } from "./interfaces/auth-module.interface"
 import { JWT_SECRET } from "./consts/jwt-constant.const"
+import { FirebaseStrategy } from "./strategies/firebase-auth.strategy"
+import { AuthModeProvider } from "./consts/auth-provide.const"
 
 @Global()
 @Module({})
@@ -37,11 +39,16 @@ export class AuthModule {
 
     const ServiceAuthProvider = serviceProviders[options.provide]
 
+    const defaultStrategy = {
+      [AuthModeProvider.LOCAL]: "jwt",
+      [AuthModeProvider.FIREBASE]: "firebase",
+    }
+
     return {
       module: AuthModule,
       imports: [
         PassportModule.register({
-          defaultStrategy: "jwt"
+          defaultStrategy: defaultStrategy[options.provide]
         }),
         JwtModule.register({
           secret: options.jwtOption.jwtSecret ?? JWT_SECRET,
@@ -49,7 +56,7 @@ export class AuthModule {
         }),
         ...config.imports
       ],
-      exports: [AuthOptionProvider, ServiceAuthProvider],
+      exports: [AuthOptionProvider, ServiceAuthProvider, PassportModule],
       providers: [
         AuthOptionProvider,
         ServiceAuthProvider,
@@ -57,6 +64,7 @@ export class AuthModule {
         LocalStrategy,
         JwtStrategy,
         JwtAuthGuard,
+        FirebaseStrategy
       ],
       controllers: [
         AuthController

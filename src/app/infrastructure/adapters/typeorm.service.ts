@@ -6,8 +6,8 @@ import { IBaseRepository } from "../../domain/ports/repository/repository.interf
 import { BaseInputDto } from "../../domain/dto/base.dto"
 import { IResultTransaction } from "../../domain/responses/generic-response.response"
 import { PaginationQuery } from "../../domain/dto/pagination-query.dto"
-import { IListPage } from "../../domain/responses/list-page.response"
 import { BuildListPage } from "./orm/list-page-typeorm"
+import { ListPageResponse } from "../../domain/responses/list-page.response"
 
 export function BaseTypeOrmService<T extends BaseEntity, D>(entity: typeof BaseEntity, entityDomain: any) {
 
@@ -24,14 +24,20 @@ export function BaseTypeOrmService<T extends BaseEntity, D>(entity: typeof BaseE
       this._engineRepo = engineRepo
     }
 
-    async listPage({ limit, page }: PaginationQuery): Promise<IListPage<D>> {
+    async listPage({ limit, page }: PaginationQuery): Promise<ListPageResponse> {
 
       const queryBase = this._engineRepo.createQueryBuilder("c")
 
-      return await BuildListPage<T, D>(entityDomain, queryBase, {
+      const resultList = await BuildListPage<T, D>(entityDomain, queryBase, {
         page: page,
         limit: limit
       })
+
+      return <ListPageResponse> {
+        page: resultList.page,
+        limit: resultList.limit,
+        items: resultList.items
+      }
     }
 
     async findById(id: number): Promise<D | null | unknown> {

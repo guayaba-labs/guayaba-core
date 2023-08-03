@@ -2,7 +2,7 @@ import { BaseInputDto } from "../domain/dto/base.dto"
 import { IBaseRepository } from "../domain/ports/repository/repository.interface"
 import { IResultTransaction } from "../domain/responses/generic-response.response"
 import { PaginationQuery } from "../domain/dto/pagination-query.dto"
-import { IListPage } from "../domain/responses/list-page.response"
+import { ListPageResponse } from "../domain/responses/list-page.response"
 
 /**
  * Abstract Class UseCase.
@@ -15,7 +15,7 @@ export abstract class UseCase<T> implements IBaseRepository<T> {
     private readonly repository: IBaseRepository<T>
   ) { }
 
-  async listPage(queryParams: PaginationQuery): Promise<IListPage<T | null | unknown>> {
+  async listPage(queryParams: PaginationQuery): Promise<ListPageResponse> {
 
     const listPage = await this.repository.listPage(queryParams)
 

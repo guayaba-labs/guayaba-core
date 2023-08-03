@@ -4,6 +4,7 @@ import { ApiBody, ApiResponse, ApiTags } from "@nestjs/swagger"
 import { LoginDto } from "../domain/request/login.dto"
 import { LoginResponse } from "../domain/response/login.response"
 import { JwtAuthGuard } from "../guards/jwt-auth.guard"
+import { FirebaseAuthGuard } from "../guards/firebase-auth.guard"
 
 @Controller("auth")
 @ApiTags("auth")
@@ -31,7 +32,7 @@ export class AuthController {
     return response.status(HttpStatus.OK).json(<LoginResponse>(accessToken))
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(FirebaseAuthGuard)
   @Get('profile')
   getProfile(@Request() req) {
     return req.user;
