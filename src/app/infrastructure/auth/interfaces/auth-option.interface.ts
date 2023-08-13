@@ -1,6 +1,7 @@
 import { ModuleMetadata, Provider, Type } from "@nestjs/common"
 import { AuthOptionsFactory } from "./auth-module.interface"
 import { AuthModeProvider } from "../consts/auth-provide.const"
+import { SelectQueryBuilder } from "typeorm"
 
 export interface JWTAuthOption {
   jwtSecret?: string
@@ -17,7 +18,9 @@ export interface IAuthConfig  {
   authUserOption: {
     userFieldId: string
     userFieldUsername: string
-    userClass: any
+    userClass: any,
+    userMapperClass: any,
+    aggregates?: (queryBuilder: SelectQueryBuilder<unknown>) => SelectQueryBuilder<unknown>
   }
   jwtOption: JWTAuthOption
   firebaseConfig?: FirebaseConfig

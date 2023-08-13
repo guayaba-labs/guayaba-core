@@ -7,6 +7,7 @@ import { LoginResponse } from "../domain/response/login.response"
 import { IAuthConfig } from "../interfaces/auth-option.interface"
 import { AUTH_OPTIONS } from "../consts/auth-option.const"
 import { JWTUserPayload } from "../interfaces/jwt-user.interface"
+import { plainToInstance } from "class-transformer"
 
 @Injectable()
 export class AuthUseCase {
@@ -25,11 +26,13 @@ export class AuthUseCase {
 
     const resultLogin = await this.authValidation.validate(loginDto.username, loginDto.password)
 
-    const authUserField = this.authOption.authUserOption
+    const user: any = plainToInstance(this.authOption.authUserOption.userMapperClass, resultLogin, {
+      excludeExtraneousValues: true,
+      enableImplicitConversion: true
+    })
 
     const payloadLoginCase: JWTUserPayload = {
-      [authUserField.userFieldId]: resultLogin[authUserField.userFieldId],
-      [authUserField.userFieldUsername]: resultLogin[authUserField.userFieldUsername],
+      ...user
     }
 
     const token = await this.jwtService.sign(payloadLoginCase)
