@@ -26,7 +26,7 @@ export class AuthUseCase {
 
     const resultLogin = await this.authValidation.validate(loginDto.username, loginDto.password)
 
-    const user: any = plainToInstance(this.authOption.authUserOption.userMapperClass, resultLogin, {
+    const user: any = plainToInstance(this.authOption.authUserOption.userMapperClass ?? this.authOption.authUserOption.userClass, resultLogin, {
       excludeExtraneousValues: true,
       enableImplicitConversion: true
     })

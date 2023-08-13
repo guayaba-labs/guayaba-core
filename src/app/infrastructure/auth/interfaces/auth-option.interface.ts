@@ -19,7 +19,7 @@ export interface IAuthConfig  {
     userFieldId: string
     userFieldUsername: string
     userClass: any,
-    userMapperClass: any,
+    userMapperClass?: any,
     aggregates?: (queryBuilder: SelectQueryBuilder<unknown>) => SelectQueryBuilder<unknown>
   }
   jwtOption: JWTAuthOption
