@@ -32,6 +32,12 @@ export class AuthController {
     return response.status(HttpStatus.OK).json(<LoginResponse>(accessToken))
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('/currentUser')
+  userLocal(@Request() req) {
+    return req.user;
+  }
+
   @UseGuards(FirebaseAuthGuard)
   @Get('profile')
   getProfile(@Request() req) {
