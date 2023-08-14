@@ -5,4 +5,6 @@ export class LoginResponse {
     type: String
   })
   accessToken: string
+
+  userInfo: any
 }

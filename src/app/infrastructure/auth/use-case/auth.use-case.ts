@@ -38,7 +38,8 @@ export class AuthUseCase {
     const token = await this.jwtService.sign(payloadLoginCase)
 
     return <LoginResponse> {
-      accessToken: token
+      accessToken: token,
+      userInfo: payloadLoginCase
     }
   }
 }
