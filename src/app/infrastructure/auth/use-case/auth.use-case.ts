@@ -37,9 +37,11 @@ export class AuthUseCase {
 
     const token = await this.jwtService.sign(payloadLoginCase)
 
+    const tokenDecode = this.jwtService.decode(token) as any
+
     return <LoginResponse> {
       accessToken: token,
-      userInfo: payloadLoginCase
+      userInfo: {...payloadLoginCase, exp: tokenDecode.exp}
     }
   }
 }

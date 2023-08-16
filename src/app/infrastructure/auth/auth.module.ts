@@ -52,7 +52,7 @@ export class AuthModule {
         }),
         JwtModule.register({
           secret: options.jwtOption.jwtSecret ?? JWT_SECRET,
-          signOptions: { expiresIn: '1day' },
+          signOptions: { expiresIn: options.jwtOption.expireIn ?? '1day' },
         }),
         ...config.imports
       ],
